@@ -1,10 +1,18 @@
 require 'nokogiri'
 require 'csv'
 
-f = File.open("2014.html")
-doc = Nokogiri::HTML(f)
-f.close()
+CSV.open("seed_songs.csv", "w") do |csv|
+  for year in 2013..2014 do
+    f = File.open("#{year}.html")
+    doc = Nokogiri::HTML(f)
+    f.close()
 
-doc.css("table.wikitable.sortable tr").each do |node|
-  puts node
+    doc.css("table.wikitable tr").each_with_index do |node, index|
+      next if index == 0
+      ranking = node.css("th").inner_text
+      title   = node.css("td:eq(1)").inner_text.gsub(/^"/, "").gsub(/"$/, "")
+      artist  = node.css("td:eq(2)").inner_text
+      csv << [title, artist, ranking, year]
+    end
+  end
 end
